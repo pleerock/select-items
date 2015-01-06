@@ -1,0 +1,39 @@
+/* General select-items directive styles */
+
+.select-items li input {
+    margin-right: 15px;
+}
+
+.select-items {
+    width: 200px;
+}
+
+.select-items ul {
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.select-items ul li {
+    list-style: none;
+    padding: 3px 0 3px 0;
+}
+
+.select-items ul li input[type="checkbox"], ul.select-items li input[type="radio"] {
+    cursor: pointer;
+}
+
+/* select-items directive + select/deselect all enabled */
+
+.select-items ul li.select-all {
+    font-weight: bold;
+}
+
+/* select-items directive + search enabled */
+
+.select-items-search input {
+    width: 97%;
+    padding: 3px;
+    color: #C0C0C0;
+    border: 1px solid #e0e0e0;
+}

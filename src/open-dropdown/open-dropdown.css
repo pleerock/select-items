@@ -1,0 +1,23 @@
+/* open-dropdown directive styles in conclude with select-items */
+
+.open-dropdown .select-items {
+    width: 100%;
+}
+
+.open-dropdown .select-items li {
+    padding: 5px;
+}
+
+.open-dropdown .select-items li.active, .open-dropdown li.no-selection.active {
+    background-color: #EEE;
+}
+
+.open-dropdown .select-items li.selected {
+    background-color: #0095cc;
+    color: #FFF;
+    padding: 6px 0 6px 6px;
+}
+
+.open-dropdown .select-items li.active.selected {
+    opacity: .8;
+}

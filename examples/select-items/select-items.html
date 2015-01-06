@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Select Items</title>
+
+    <link rel="stylesheet" href="../../src/select-items/select-items.css"/>
+
+    <script src="../../bower_components/angular/angular.js"></script>
+    <script src="../../bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="../../src/select-options/select-options.js"></script>
+    <script src="../../src/select-items/select-items.js"></script>
+
+    <script src="select-items-ctrl.js"></script>
+
+    <style>
+
+        h1 i{ font-size: 12px; font-weight: normal; font-style: italic; color: #ffa82f; }
+        .dark { background: #333; color: #ccc; border: 2px solid #666; padding: 2px; }
+
+    </style>
+
+</head>
+<body ng-app="selectItemsExample" ng-controller="SelectItemsCtrl">
+
+    <!-- =================================================================== -->
+
+    <h1>Basic usage:</h1>
+
+    <select-items ng-model="selectedUser"
+                  select-options="user.name for user in users">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ selectedUser.name }}</b><br/>
+    Model: <small>{{ selectedUser }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Basic usage (custom styles and classes):</h1>
+
+    <select-items ng-model="selectedUser"
+                  select-options="user.name for user in users"
+                  class="dark"
+                  style="width: 500px">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ selectedUser.name }}</b><br/>
+    Model: <small>{{ selectedUser }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Basic usage multiple items select (model is an array):</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiple items with ability to select/deselect all at once: <i>only multiselect</i></h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  select-all="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiple items with a search box (filter):</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  search="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Select item with auto selected first item: <i>only single select</i></h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="defaultSelectedUser"
+                  auto-select="true">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ defaultSelectedUser.name }}</b><br/>
+    Model: <small>{{ defaultSelectedUser }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Select item with limited showed items:</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUser"
+                  show-limit="3">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ defaultSelectedUser.name }}</b><br/>
+    Model: <small>{{ defaultSelectedUser }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Select with customized labels: <i>only single select</i></h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUser"
+                  select-all="true"
+                  search="true"
+                  search-placeholder="TYPE HERE TO SEARCH"
+                  no-selection-label="NO SELECTION">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ selectedUser.name }}</b><br/>
+    Model: <small>{{ selectedUser }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiselect with customized labels: <i>only multiselect</i></h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  select-all="true"
+                  search="true"
+                  search-placeholder="TYPE HERE TO SEARCH"
+                  select-all-label="SELECT THEM ALL"
+                  deselect-all-label="DESELECT THEM ALL">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiselect with hidden controls</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  select-all="true"
+                  search="true"
+                  hide-controls="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiselect with ordered items</h1>
+
+    <select-items select-options="user.name for user in users order by name"
+                  ng-model="selectedUsers"
+                  multiselect="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiselect track by some property:</h1>
+
+    <select-items select-options="user.name for user in users track by user.email order by name"
+                  ng-model="selectedUsers"
+                  multiselect="true">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Select object partitions</h1>
+
+    <select-items select-options="user.name as user.name for user in users"
+                  ng-model="selectedNames"
+                  multiselect="true">
+    </select-items>
+
+    <br/>
+    Selected names are: <b ng-repeat="selectedName in selectedNames">{{ selectedName.name }} </b><br/>
+    Model: <small>{{ selectedNames }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Example with custom filter</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  select-all="true"
+                  search="true"
+                  filters="[customFilter]">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Example with custom decorator</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUsers"
+                  multiselect="true"
+                  select-all="true"
+                  search="true"
+                  decorator="decorator">
+    </select-items>
+
+    <br/>
+    Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
+    Model: <small>{{ selectedUsers }}</small><br/>
+
+</body>
+</html>
