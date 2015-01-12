@@ -29,8 +29,8 @@ angular.module('selectItems').factory('selectItemsActiveItemNavigator', function
                 return items[index - 1];
             }
 
-            // if previous item does not exist then just stay on the same element
-            return null;
+            // if previous item does not exist then it means we are on the first element
+            return items[0];
         },
 
         next: function(items, currentSelectedItem) {
@@ -48,6 +48,10 @@ angular.module('selectItems').factory('selectItemsActiveItemNavigator', function
             if (currentSelectedItem && index > -1 && items[index + 1]) {
                 return items[index + 1];
             }
+
+            // if element not found in the items list then return first element
+            if (index === -1)
+                return items[0];
 
             // if next item does not exist then just stay on the same element
             return currentSelectedItem;

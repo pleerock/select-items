@@ -10,8 +10,7 @@ angular.module('selectTags', ['autoGrowInput', 'selectItems', 'openDropdown']);
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
 angular.module('selectTags').directive('selectTags', [
-    '$timeout',
-    function ($timeout) {
+    function () {
 
         var guid = function() {
             function s4() {
@@ -34,7 +33,7 @@ angular.module('selectTags').directive('selectTags', [
                                         'select-options="' + attrs.selectOptions + '"' +
                                         'caret-position="caretPosition"' +
                                         '></select-tags-input>' +
-                    '<open-dropdown class="open-dropdown" for="' + selectTagsInputId + '" toggle-click="false" tabindex="13">' +
+                    '<open-dropdown class="open-dropdown" for="' + selectTagsInputId + '" toggle-click="true" tabindex="13">' +
                        '<select-items ' +
                              'select-options="' + attrs.selectOptions + '"'  +
                              'ng-model="' + attrs.ngModel + '"'  +
@@ -78,8 +77,6 @@ angular.module('selectTags').directive('selectTags', [
                  */
                 scope.caretPosition = 0;
 
-                scope.numberOfDisplayedItems = 0;
-
                 // ---------------------------------------------------------------------
                 // Variables
                 // ---------------------------------------------------------------------
@@ -118,40 +115,40 @@ angular.module('selectTags').directive('selectTags', [
 
                         case 13: // KEY "ENTER"
                             if (scope.isOpened) {
-                                scope.$broadcast('select-items.select_active');
+                                var broadcastedEvent = scope.$broadcast('select-items.select_active');
+
+                                // if item was selected from the item list then we stop propagation to prevent
+                                // tags input to add a new tag
+                                if (broadcastedEvent.isItemSelected === true) {
+                                    e.stopPropagation();
+                                }
                                 scope.$digest();
                             }
                             return;
 
                         case 27: // KEY "ESC"
                             scope.isOpened = false;
-                            scope.$emit('select-items.selection_canceled');
                             scope.$digest();
                             return;
 
                         default:
                             return;
                     }
-                });
+                }, true);
 
+                // when new item selected in the select-items list we must update caret position in the
+                // select-tags-input directive and also clear input of that
                 scope.$on('select-items.item_selected', function(event, data) {
                     if (data.isNewSelection)
                         ++scope.caretPosition;
                     else if (scope.caretPosition > 0 && scope.caretPosition > data.index)
                         --scope.caretPosition;
 
-                    /**
-                     * When item is selected we move focus back to select-items-box and hide dropdown if its not multiselect typed.
-                     * This needs to be run in a timeout, because input gets focus and doing its own operations, after
-                     * that he calls digest and it fails because at this point digest already in progress.
-                     */
-                    $timeout(function() {
-                        getSelectTagsInput().focus();
-                    });
+                    scope.$broadcast('select-tags-input.clear_input');
                 });
 
-                // when user types a text into the input box, we must filter our items in the select-items directive
-                // to show only items that are
+                // when user types a text into tags input box, we must filter our items in the select-items directive
+                // to show only items that are matched what user typed
                 scope.$on('select-tags-input.text_entered', function(event, text) {
                     scope.userInputText = text;
                 });

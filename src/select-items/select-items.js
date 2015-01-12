@@ -57,7 +57,6 @@ angular.module('selectItems').directive('selectItems', [
                 searchKeyword: '=?',
                 filters: '=?',
                 decorator: '=?',
-                numberOfDisplayedItems: '=?',
                 modelInsertPosition: '=?',
                 searchPlaceholder: '@',
                 selectAllLabel: '@',
@@ -138,7 +137,6 @@ angular.module('selectItems').directive('selectItems', [
                     if (selectOptionsCtrl.getOrderBy())
                         items = orderByFilter(items, selectOptionsCtrl.getOrderBy());
 
-                    scope.numberOfDisplayedItems = items.length;
                     return items;
                 };
 
@@ -306,9 +304,14 @@ angular.module('selectItems').directive('selectItems', [
                 });
 
                 // when this event comes it selects (adds to the model) a currently active item
-                scope.$on('select-items.select_active', function() {
-                    if (scope.getDisplayedItems().length > 0)
+                scope.$on('select-items.select_active', function(event) {
+                    var displayedItems = scope.getDisplayedItems();
+                    if (displayedItems.length > 0 && displayedItems.indexOf(scope.activeItem) !== -1) {
                         scope.selectItem(scope.activeItem);
+                        event.isItemSelected = true;
+                    } else {
+                        event.isItemSelected = false;
+                    }
                 });
 
                 // ---------------------------------------------------------------------

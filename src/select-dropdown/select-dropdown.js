@@ -95,7 +95,6 @@ angular.module('selectDropdown').directive('selectDropdown', [
 
                         case 27: // KEY "ESC"
                             scope.isOpened = false;
-                            scope.$emit('select-items.selection_canceled');
                             scope.$digest();
                             return;
 

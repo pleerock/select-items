@@ -368,6 +368,14 @@ angular.module('selectTags').directive('selectTagsInput', [
                 // Event listeners
                 // ---------------------------------------------------------------------
 
+                scope.$on('select-tags-input.clear_input', function() {
+                    scope.tokenInputValue = ''; // restore input value
+                    input.value = '';
+                    input.dispatchEvent(new CustomEvent('update'));
+                    input.focus();
+                    scope.$emit('select-tags-input.text_entered', '');
+                });
+
                 scope.$on('$destroy', function() {
                     if (loadTimeoutPromise)
                         $timeout.cancel(loadTimeoutPromise);
