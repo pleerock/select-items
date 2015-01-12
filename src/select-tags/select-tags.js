@@ -1,11 +1,6 @@
 'use strict';
 
 /**
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('selectTags', ['autoGrowInput', 'selectItems', 'openDropdown']);
-
-/**
  *
  * @author Umed Khudoiberdiev <info@zar.tj>
  */

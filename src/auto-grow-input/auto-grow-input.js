@@ -243,7 +243,6 @@ angular.module('autoGrowInput').directive('autoGrowInput', [
 
                 var $element = angular.element(element);
                 $element.on('keydown keyup blur update', recalculateInputWidth);
- 
             }
         };
     }
