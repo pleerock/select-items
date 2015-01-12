@@ -10,7 +10,8 @@ angular.module('selectTags', ['autoGrowInput', 'selectItems', 'openDropdown']);
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
 angular.module('selectTags').directive('selectTags', [
-    function () {
+    '$timeout',
+    function ($timeout) {
 
         var guid = function() {
             function s4() {
@@ -100,9 +101,9 @@ angular.module('selectTags').directive('selectTags', [
                         case 38: // KEY "UP"
                             e.preventDefault();
                             scope.isOpened = true;
-                            getSelectTagsInput().focus();
                             scope.$broadcast('select-items.active_next');
                             scope.$digest();
+                            getSelectTagsInput().focus();
                             return;
 
                         case 40: // KEY "DOWN"
@@ -139,12 +140,16 @@ angular.module('selectTags').directive('selectTags', [
                 // when new item selected in the select-items list we must update caret position in the
                 // select-tags-input directive and also clear input of that
                 scope.$on('select-items.item_selected', function(event, data) {
+
+                    // update caret positions based on selection results
                     if (data.isNewSelection)
                         ++scope.caretPosition;
                     else if (scope.caretPosition > 0 && scope.caretPosition > data.index)
                         --scope.caretPosition;
 
-                    scope.$broadcast('select-tags-input.clear_input');
+                    $timeout(function() { // timeout is required to prevent lag of tags-input
+                        scope.$broadcast('select-tags-input.clear_input');
+                    });
                 });
 
                 // when user types a text into tags input box, we must filter our items in the select-items directive

@@ -80,6 +80,11 @@ angular.module('selectTags').directive('selectTagsInput', [
                 // Local functions
                 // ---------------------------------------------------------------------
 
+                /**
+                 * Changes a caret position and moves input to a new position.
+                 *
+                 * @param {number} position
+                 */
                 var changeCaretPosition = function (position) {
                     scope.caretPosition = position;
                     moveInputToPosition(position);
@@ -97,6 +102,17 @@ angular.module('selectTags').directive('selectTagsInput', [
                 };
 
                 /**
+                 * Clears tags input value.
+                 */
+                var clearInputValue = function () {
+                    scope.tokenInputValue = ''; // restore input value
+                    input.value = '';
+                    input.dispatchEvent(new CustomEvent('update'));
+                    input.focus();
+                    scope.$emit('select-tags-input.text_entered', '');
+                };
+
+                /**
                  * Adds a new item to the model at the current cursor position. New item's value
                  * got from the input. After adding a new item, input is cleared.
                  */
@@ -107,12 +123,7 @@ angular.module('selectTags').directive('selectTagsInput', [
 
                     ngModelHelper.add(itemToBeAdded, scope.caretPosition);
                     changeCaretPosition(scope.caretPosition + 1);
-
-                    scope.tokenInputValue = ''; // restore input value
-                    input.value = '';
-                    input.dispatchEvent(new CustomEvent('update'));
-                    input.focus();
-                    scope.$emit('select-tags-input.text_entered', '');
+                    clearInputValue();
                 };
 
                 /**
@@ -283,7 +294,6 @@ angular.module('selectTags').directive('selectTagsInput', [
                  */
                 scope.tagRemove = function(event, index) {
                     event.stopPropagation();
-
                     ngModelHelper.removeAt(index);
                     changeCaretPosition(ngModelHelper.count());
                     selectedTokens.clear();
@@ -299,15 +309,6 @@ angular.module('selectTags').directive('selectTagsInput', [
                     input.focus();
                 });
 
-                // close dropdown, reset caret and other things if use clicks outside of this directive
-                document.addEventListener('mousedown', function() {
-                    if (element[0].contains(event.target)) return;
-
-                    selectedTokens.clear();
-                    changeCaretPosition(ngModelHelper.count());
-                    scope.$digest();
-                });
-
                 // listen to key downs on the container to make control operations
                 container.addEventListener('keydown', function (e) {
                     switch (e.keyCode) {
@@ -319,7 +320,6 @@ angular.module('selectTags').directive('selectTagsInput', [
                             }
                             return;
 
-                        //todo: case 9: // KEY "TAB"
                         case 13: // KEY "RETURN"
                             addNewValueFromInput();
                             scope.$digest();
@@ -327,12 +327,12 @@ angular.module('selectTags').directive('selectTagsInput', [
 
                         case 37: // KEY "LEFT"
                             moveInputToLeft();
-                            scope.$digest();
+                            scope.$apply(); // note: don't use $digest here because it will break proper caret position changing
                             return;
 
                         case 39: // KEY "RIGHT"
                             moveInputToRight();
-                            scope.$digest();
+                            scope.$apply(); // note: don't use $digest here because it will break proper caret position changing
                             return;
 
                         case 8: // KEY "BACKSPACE"
@@ -345,6 +345,15 @@ angular.module('selectTags').directive('selectTagsInput', [
                             scope.$digest();
                             return;
                     }
+                });
+
+                // close dropdown, reset caret and other things if use clicks outside of this directive
+                document.addEventListener('mousedown', function() {
+                    if (element[0].contains(event.target)) return;
+
+                    selectedTokens.clear();
+                    changeCaretPosition(ngModelHelper.count());
+                    scope.$digest();
                 });
 
                 // ---------------------------------------------------------------------
@@ -360,7 +369,6 @@ angular.module('selectTags').directive('selectTagsInput', [
                 scope.$watch('caretPosition', function(newPosition, oldPosition) {
                     if (newPosition === oldPosition)
                         return;
-
                     changeCaretPosition(newPosition);
                 });
 
@@ -368,14 +376,12 @@ angular.module('selectTags').directive('selectTagsInput', [
                 // Event listeners
                 // ---------------------------------------------------------------------
 
+                // this event request tags input to clear itself
                 scope.$on('select-tags-input.clear_input', function() {
-                    scope.tokenInputValue = ''; // restore input value
-                    input.value = '';
-                    input.dispatchEvent(new CustomEvent('update'));
-                    input.focus();
-                    scope.$emit('select-tags-input.text_entered', '');
+                    clearInputValue();
                 });
 
+                // cleanup after directive and its scope is destroyed
                 scope.$on('$destroy', function() {
                     if (loadTimeoutPromise)
                         $timeout.cancel(loadTimeoutPromise);
@@ -385,7 +391,6 @@ angular.module('selectTags').directive('selectTagsInput', [
         }
     }
 ]);
-
 
 /**
  *

@@ -39,8 +39,8 @@
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
 angular.module('selectItems').directive('selectItems', [
-    '$parse', 'selectItemsConfiguration', 'selectItemsActiveItemNavigator', 'orderByFilter', 'filterFilter',
-    function ($parse, selectItemsConfiguration, selectItemsActiveItemNavigator, orderByFilter, filterFilter) {
+    '$parse', 'selectItemsConfiguration', 'selectItemsActiveItemNavigator', 'orderByFilter', 'filterFilter', 'highlightWordFilter',
+    function ($parse, selectItemsConfiguration, selectItemsActiveItemNavigator, orderByFilter, filterFilter, highlightWordFilter) {
 
         return {
             scope: {
@@ -99,7 +99,7 @@ angular.module('selectItems').directive('selectItems', [
                 scope.getItemName = function(item) {
                     var value = selectOptionsCtrl.parseItemName(item);
                     value = String(value).replace(/<[^>]+>/gm, ''); // strip html from the data here
-                    return scope.decorator ? scope.decorator(item) : value;
+                    return scope.decorator ? scope.decorator(item) : highlightWordFilter(value, scope.searchKeyword);
                 };
 
                 /**
