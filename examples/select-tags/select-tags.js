@@ -9,8 +9,8 @@ angular.module('selectTagsExample', ['selectTags']);
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
 angular.module('selectTagsExample').controller('SelectTagsCtrl', [
-    '$scope',
-    function ($scope) {
+    '$scope', '$http',
+    function ($scope, $http) {
 
         /**
          * Array of data that will be used to show in the select.
@@ -49,6 +49,10 @@ angular.module('selectTagsExample').controller('SelectTagsCtrl', [
         ];
 
         $scope.selectedUsers = [$scope.users[0], $scope.users[1]];
+
+        $scope.loadPromise = function(value) {
+            return $http('http://backend.yakdu.dev/web/app_dev.php/person/search', 'GET', {params: {name: value}});
+        };
 
     }
 ]);

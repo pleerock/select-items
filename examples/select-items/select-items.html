@@ -9,6 +9,11 @@
     <script src="../../bower_components/angular/angular.js"></script>
     <script src="../../bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="../../src/select-options/select-options.js"></script>
+
+    <!-- select-items -->
+    <script src="../../src/select-items/selectItems.js"></script>
+    <script src="../../src/select-items/selectItemsActiveItemNavigator.js"></script>
+    <script src="../../src/select-items/selectItemsConfiguration.js"></script>
     <script src="../../src/select-items/select-items.js"></script>
 
     <script src="select-items-ctrl.js"></script>
@@ -165,6 +170,20 @@
     <br/>
     Selected users are: <b ng-repeat="selectedUser in selectedUsers">{{ selectedUser.name }} </b><br/>
     Model: <small>{{ selectedUsers }}</small><br/>
+
+    <!-- =================================================================== -->
+
+    <h1>Multiselect with hidden "no selection" label</h1>
+
+    <select-items select-options="user.name for user in users"
+                  ng-model="selectedUser"
+                  search="true"
+                  hide-no-selection="true">
+    </select-items>
+
+    <br/>
+    Selected user is: <b>{{ selectedUser.name }}</b><br/>
+    Model: <small>{{ selectedUser }}</small><br/>
 
     <!-- =================================================================== -->
 

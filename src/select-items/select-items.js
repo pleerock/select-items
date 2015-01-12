@@ -4,74 +4,88 @@
  * This directive provides a ability to select items from the given list to the given model.
  * Supports both multiple and single select modes.
  *
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('selectItems', ['selectOptions', 'ngSanitize', 'template/select-items/select-items.html']);
-
-/**
- * This directive provides a ability to select items from the given list to the given model.
- * Supports both multiple and single select modes.
+ * @ngdoc directive
+ * @param {Array.<Function>} filters Filters used to filter out values that must not be shown.
+ * @param {number} showLimit Maximal number of items to show in the list
+ * @param {Function} decorator Custom decorator used to change a view of the list item
+ * @param {number} modelInsertPosition Optional number that will be used to insert a new model item in multiselect mode.
+ * @param {Function} onChange Expression that will be executed on change of the ng-model
+ * @param {Function} searchFilter Filter that controls the result of the search input
+ * @param {expression|object} searchKeyword Model used to be a search keyword that user types in the search box
+ * @param {object} activeItem Item that will be active by default
+ * @param {boolean} autoSelect If set to true, then first item of the give select-items will be selected.
+ *                             This works only with single select
+ * @param {boolean} multiselect If set to true then user can select multiple options from the list of items. In this
+ *                              case ng-model will be an array. If set to false then user can select only one option
+ *                              from the list of items. In this case ng-model will not be array
+ * @param {boolean} hideControls If set to true, then all select-items controls will be hidden. Controls such as
+ *                               checkboxes and radio boxes
+ * @param {boolean} hideNoSelection If set to true, then all "nothing is selected" label and checkbox will not be
+ *                                      shown. This label show only in single select mode
+ * @param {boolean} search If set to true, then search input will be shown to the user, where he can peform a search
+ *                          in the list of items
+ * @param {boolean} selectAll If set to true, then "select all" option will be shown to user. This works only when
+ *                              multiple items mode is enabled
+ * @param {string} searchPlaceholder Custom placeholder text that will be in the search box
+ * @param {string} selectAllLabel Custom text that will be used as a "select all" label.
+ *                                  This label show only in single select mode
+ * @param {string} deselectAllLabel Custom text that will be used as a "deselect all" label.
+ *                                  This label show only in multi select mode
+ * @param {string} noSelectionLabel Custom text that will be used as a "no items selected" label.
+ *                                  This label show only in multi select mode
+ * @param {string} keyInputListenFor The id of the DOM element from that this directive will catch keyboard events,
+ *                                   to
  *
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
 angular.module('selectItems').directive('selectItems', [
-    '$parse', 'ListItemsActiveItemUtils', 'orderByFilter', 'filterFilter', '$templateCache',
-    function ($parse, ListItemsActiveItemUtils, orderByFilter, filterFilter, $templateCache) {
-
-        /**
-         * Translates a given value (mostly string) to a boolean.
-         *
-         * @param {*} value
-         * @returns {boolean}
-         */
-        var toBoolean = function(value) {
-            if (value && value.length !== 0) {
-                var v = value.toLowerCase();
-                value = !(v === 'f' || v === '0' || v === 'false' || v === 'no' || v === 'n' || v === '[]');
-            } else {
-                value = false;
-            }
-            return value;
-        };
+    '$parse', 'selectItemsConfiguration', 'selectItemsActiveItemNavigator', 'orderByFilter', 'filterFilter',
+    function ($parse, selectItemsConfiguration, selectItemsActiveItemNavigator, orderByFilter, filterFilter) {
 
         return {
             scope: {
-                filters: '=',
-                showLimit: '@',
-                decorator: '=',
-                onChange: '=',
-                searchFilter: '='
-                /* showLimit: int */
+                multiselect: '=?',
+                activeItem: '=?',
+                onChange: '=?',
+                showLimit: '=?',
+                selectAll: '=?',
+                autoSelect: '=?',
+                hideControls: '=?',
+                hideNoSelection: '=?',
+                search: '=?',
+                searchFilter: '=?',
+                searchKeyword: '=?',
+                filters: '=?',
+                decorator: '=?',
+                numberOfDisplayedItems: '=?',
+                modelInsertPosition: '=?',
+                searchPlaceholder: '@',
+                selectAllLabel: '@',
+                deselectAllLabel: '@',
+                noSelectionLabel: '@'
             },
             replace: true,
             restrict: 'E',
             require: ['ngModel', 'selectOptions'],
-            templateUrl: 'template/select-items/select-items.html',
+            templateUrl: '../../src/select-items/select-items.html',
             link: function (scope, element, attrs, controllers) {
-
-                // ---------------------------------------------------------------------
-                // Local variables
-                // ---------------------------------------------------------------------
-
-                var ngModelCtrl               = controllers[0];
-                var selectOptionsCtrl         = controllers[1];
-                var keyInputListenerContainer = attrs.keyInputListenFor ? document.getElementById(attrs.keyInputListenFor) : null;
 
                 // ---------------------------------------------------------------------
                 // Scope variables
                 // ---------------------------------------------------------------------
 
                 scope.showLimit            = scope.showLimit ? parseInt(scope.showLimit) : null;
-                scope.autoSelect           = toBoolean(attrs.autoSelect);
-                scope.multiselect          = toBoolean(attrs.multiselect);
-                scope.hideControls         = toBoolean(attrs.hideControls);
-                scope.search               = toBoolean(attrs.search);
-                scope.selectAll            = toBoolean(attrs.selectAll);
-                scope.searchPlaceholder    = attrs.searchPlaceholder || 'Type to search';
-                scope.selectAllLabel       = attrs.selectAllLabel    || 'Select all';
-                scope.deselectAllLabel     = attrs.deselectAllLabel  || 'Deselect all';
-                scope.noSelectionLabel     = attrs.noSelectionLabel  || 'Nothing is selected';
-                scope.activeItem           = null;
+                scope.searchPlaceholder    = scope.searchPlaceholder || selectItemsConfiguration.searchPlaceholder;
+                scope.selectAllLabel       = scope.selectAllLabel    || selectItemsConfiguration.selectAllLabel;
+                scope.deselectAllLabel     = scope.deselectAllLabel  || selectItemsConfiguration.deselectAllLabel;
+                scope.noSelectionLabel     = scope.noSelectionLabel  || selectItemsConfiguration.noSelectionLabel;
+
+                // ---------------------------------------------------------------------
+                // Local variables
+                // ---------------------------------------------------------------------
+
+                var ngModelCtrl        = controllers[0];
+                var selectOptionsCtrl  = controllers[1];
 
                 // ---------------------------------------------------------------------
                 // Scope functions
@@ -124,16 +138,8 @@ angular.module('selectItems').directive('selectItems', [
                     if (selectOptionsCtrl.getOrderBy())
                         items = orderByFilter(items, selectOptionsCtrl.getOrderBy());
 
+                    scope.numberOfDisplayedItems = items.length;
                     return items;
-                };
-
-                /**
-                 * Sets a given item as active.
-                 *
-                 * @param {object} item
-                 */
-                scope.setActiveItem = function(item) {
-                    scope.activeItem = item;
                 };
 
                 /**
@@ -179,38 +185,6 @@ angular.module('selectItems').directive('selectItems', [
                 };
 
                 /**
-                 * Selects a given item.
-                 *
-                 * @param {object} item
-                 */
-                scope.selectItem = function(item) {
-                    var value = selectOptionsCtrl.parseItemValue(item);
-
-                    // if simple, not multiple mode then
-                    var model = value;
-                    if (scope.multiselect) {
-                        // otherwise dealing with multiple model
-                        model = ngModelCtrl.$modelValue || [];
-                            if (!scope.isItemSelected(item))
-                            model.push(value);
-                        else
-                            model.splice(model.indexOf(value), 1);
-                    }
-
-                    ngModelCtrl.$setViewValue(model);
-                    if (scope.onChange) scope.onChange(model);
-
-                    // tell others that use selected item
-                    scope.$emit('select-items.item_selected', { item: item, isMultiselect: scope.multiselect });
-                };
-
-                var a = function() {
-
-
-
-                };
-
-                /**
                  * Checks if all items are selected or not.
                  *
                  * @returns {boolean}
@@ -224,6 +198,43 @@ angular.module('selectItems').directive('selectItems', [
                     });
 
                     return isAnyNotSelected === false;
+                };
+
+                /**
+                 * Selects a given item.
+                 *
+                 * @param {object} item
+                 */
+                scope.selectItem = function(item) {
+                    var value = selectOptionsCtrl.parseItemValue(item);
+                    var newSelection = false;
+                    var index = null;
+
+                    // if simple, not multiple mode then
+                    var model = value;
+                    if (scope.multiselect) {
+                        // otherwise dealing with multiple model
+                        model = ngModelCtrl.$modelValue || [];
+                        if (!scope.isItemSelected(item) && value !== null) {
+                            if (angular.isDefined(scope.modelInsertPosition))
+                                model.splice(scope.modelInsertPosition, 0, item);
+                            else
+                                model.push(value);
+
+                            index = scope.modelInsertPosition;
+                            newSelection = true;
+                        } else {
+                            index = model.indexOf(value);
+                            model.splice(index, 1);
+                        }
+                    }
+
+                    ngModelCtrl.$setViewValue(model);
+                    if (scope.onChange)
+                        scope.onChange(model);
+
+                    // tell others that use selected item
+                    scope.$emit('select-items.item_selected', { item: item, isMultiselect: scope.multiselect, isNewSelection: newSelection, index: index });
                 };
 
                 /**
@@ -245,9 +256,16 @@ angular.module('selectItems').directive('selectItems', [
                 scope.deselectAllItems = function() {
                     if (!scope.multiselect) return;
 
-                    var model = [];
-                    ngModelCtrl.$setViewValue(model);
-                    if (scope.onChange) scope.onChange(model);
+                    var items = scope.getDisplayedItems();
+                    angular.forEach(items, function(item) {
+                        if (scope.isItemSelected(item))
+                            scope.selectItem(item);
+                    });
+
+                    // remove lines after be sure that approach in about don't bring us a problems
+                    //var model = [];
+                    //ngModelCtrl.$setViewValue(model);
+                    //if (scope.onChange) scope.onChange(model);
                 };
 
                 /**
@@ -261,156 +279,49 @@ angular.module('selectItems').directive('selectItems', [
                         scope.selectAllItems();
                 };
 
-                // ---------------------------------------------------------------------
-                // Local functions
-                // ---------------------------------------------------------------------
-
                 /**
-                 * Listens to the key down events on the given "keyInputListener" element.
+                 * Sets a given item as active.
                  *
-                 * @param {KeyboardEvent} e
+                 * @param {object} item
                  */
-                var onKeyInputListenerKeyDown = function (e) {
-                    switch (e.keyCode) {
-
-                        case 38: // KEY "UP"
-                            e.preventDefault();
-                            var activeItem = ListItemsActiveItemUtils.previous(scope.getDisplayedItems(), scope.activeItem);
-                            if (activeItem || !scope.multiselect) {
-                                scope.activeItem = activeItem;
-                                scope.$apply();
-                            }
-                            return;
-
-                        case 40: // KEY "DOWN"
-                            e.preventDefault();
-                            scope.activeItem = ListItemsActiveItemUtils.next(scope.getDisplayedItems(), scope.activeItem);
-                            scope.$apply();
-                            return;
-
-                        case 13: // KEY "ENTER"
-                            scope.selectItem(scope.activeItem);
-                            scope.$apply();
-                            return;
-
-                        case 27: // KEY "ESC"
-                            scope.$emit('select-items.selection_canceled');
-                            scope.$apply();
-                            return;
-
-                        default:
-                            element[0].style.display = 'block';
-                    }
+                scope.setActiveItem = function(item) {
+                    scope.activeItem = item;
                 };
-
-                // ---------------------------------------------------------------------
-                // Initialization
-                // ---------------------------------------------------------------------
-
-                if (scope.autoSelect)
-                    scope.selectItem(scope.getDisplayedItems()[0]);
 
                 // ---------------------------------------------------------------------
                 // Event listeners
                 // ---------------------------------------------------------------------
 
-                if (keyInputListenerContainer)
-                    keyInputListenerContainer.addEventListener('keydown', onKeyInputListenerKeyDown);
-
-                scope.$on('$destroy', function() {
-                    if (keyInputListenerContainer)
-                        keyInputListenerContainer.removeEventListener('keydown', onKeyInputListenerKeyDown);
+                // when this event comes it makes a next item in the list of displayed items as active
+                scope.$on('select-items.active_next', function() {
+                    var activeItem = selectItemsActiveItemNavigator.previous(scope.getDisplayedItems(), scope.activeItem);
+                    if (activeItem || !scope.multiselect) {
+                        scope.activeItem = activeItem;
+                    }
                 });
+
+                // when this event comes it makes a previous item in the list of displayed items as active
+                scope.$on('select-items.active_previous', function() {
+                    scope.activeItem = selectItemsActiveItemNavigator.next(scope.getDisplayedItems(), scope.activeItem);
+                });
+
+                // when this event comes it selects (adds to the model) a currently active item
+                scope.$on('select-items.select_active', function() {
+                    if (scope.getDisplayedItems().length > 0)
+                        scope.selectItem(scope.activeItem);
+                });
+
+                // ---------------------------------------------------------------------
+                // Initialization
+                // ---------------------------------------------------------------------
+
+                // if auto-select option is given then auto select first item in the displayed list of items
+                if (scope.autoSelect) {
+                    var displayedItems = scope.getDisplayedItems();
+                    if (displayedItems.length > 0)
+                        scope.selectItem(displayedItems[0]);
+                }
             }
         };
     }
 ]);
-
-/**
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('selectItems').service('ListItemsActiveItemUtils', [
-    function () {
-
-        /**
-         * @class ListItemsActiveItemUtils
-         */
-        return {
-
-            previous: function(items, currentSelectedItem) {
-
-                // no items - no way to deal here
-                if (!items || items.length === 0)
-                    return null;
-
-                // select last element if not selections yet
-                // if (!currentSelectedItem && items.length > 0)
-                //    return items[items.length - 1];
-
-                // select previous item if it exists
-                var index = items.indexOf(currentSelectedItem);
-                if (index > 0 && items[index - 1]) {
-                    return items[index - 1];
-                }
-
-                // if previous item does not exist then just stay on the same element
-                return null;
-            },
-
-            next: function(items, currentSelectedItem) {
-
-                // no items - no way to deal here
-                if (!items || items.length === 0)
-                    return null;
-
-                // if not current selection then select first item
-                if (!currentSelectedItem)
-                    return items[0];
-
-                // select next item if it exists
-                var index = items.indexOf(currentSelectedItem);
-                if (currentSelectedItem && index > -1 && items[index + 1]) {
-                    return items[index + 1];
-                }
-
-                // if next item does not exist then just stay on the same element
-                return currentSelectedItem;
-            }
-
-        };
-    }
-]);
-
-/**
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('template/select-items/select-items.html', []).run(['$templateCache', function($templateCache) {
-    $templateCache.put('template/select-items/select-items.html',
-        '<div class="select-items"><ul>' +
-            '<li ng-show="search" class="select-items-search"><input ng-model="searchKeyword" placeholder="{{ searchPlaceholder }}"></li>' +
-            '<li ng-show="multiselect && selectAll && getDisplayedItems().length > 0" class="select-all" ng-click="toggleAllItemsSelection()">' +
-                '<input ng-show="!hideControls" type="checkbox" ng-checked="areAllItemsSelected()">' +
-                '<span class="select-all">{{ areAllItemsSelected() ? deselectAllLabel : selectAllLabel }}</span>' +
-            '</li>' +
-            '<li ng-show="!multiselect && !autoSelect && noSelectionLabel"' +
-                'ng-click="selectItem()"' +
-                'ng-mouseover="setActiveItem(null)"' +
-                'ng-class="{ \'active\' : !activeItem }"' +
-                'class="no-selection">' +
-                '<input ng-show="!hideControls" type="radio" ng-checked="!isAnyItemSelected()">{{ noSelectionLabel }}' +
-            '</li>' +
-            '<li ng-repeat="item in getDisplayedItems()"' +
-                'ng-mouseover="setActiveItem(item)"' +
-                'ng-click="selectItem(item)"' +
-                'ng-class="{ \'active\' : activeItem === item, \'selected\': isItemSelected(item) }"' +
-                'class="select-item">' +
-                '<div class="select-item-container">' +
-                    '<input class="item-control" ' +
-                        'ng-show="!hideControls" ' +
-                        'ng-attr-type="{{ multiselect ? \'checkbox\' : \'radio\' }}" ' +
-                        'ng-checked="isItemSelected(item)">' +
-                    '<span class="select-item-template" ng-bind-html="getItemName(item)"></span>' +
-                '</div>' +
-            '</li>' +
-        '</ul></div>');
-}]);

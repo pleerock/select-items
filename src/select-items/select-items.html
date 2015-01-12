@@ -1,0 +1,37 @@
+<div class="select-items"
+     ng-show="search
+            || (multiselect && selectAll && getDisplayedItems().length > 0)
+            || (!multiselect && !autoSelect && !hideNoSelection && noSelectionLabel)
+            || getDisplayedItems().length > 0">
+    <ul>
+        <li ng-show="search" class="select-items-search">
+            <input ng-model="searchKeyword" placeholder="{{ searchPlaceholder }}">
+        </li>
+        <li class="select-all"
+            ng-show="multiselect && selectAll && getDisplayedItems().length > 0"
+            ng-click="toggleAllItemsSelection()">
+            <input ng-show="!hideControls" type="checkbox" ng-checked="areAllItemsSelected()">
+            <span class="select-all">{{ areAllItemsSelected() ? deselectAllLabel : selectAllLabel }}</span>
+        </li>
+        <li ng-show="!multiselect && !autoSelect && !hideNoSelection && noSelectionLabel"
+            ng-click="selectItem()"
+            ng-mouseover="setActiveItem(null)"
+            ng-class="{ 'active' : !activeItem }"
+            class="no-selection">
+            <input ng-show="!hideControls" type="radio" ng-checked="!isAnyItemSelected()"> {{ noSelectionLabel }}
+        </li>
+        <li ng-repeat="item in getDisplayedItems()"
+            ng-mouseover="setActiveItem(item)"
+            ng-click="selectItem(item)"
+            ng-class="{ 'active' : activeItem === item, 'selected': isItemSelected(item) }"
+            class="select-item">
+            <div class="select-item-container">
+                <input class="item-control"
+                       ng-show="!hideControls"
+                       ng-attr-type="{{ multiselect ? 'checkbox' : 'radio' }}"
+                       ng-checked="isItemSelected(item)">
+                <span class="select-item-template" ng-bind-html="getItemName(item)"></span>
+            </div>
+        </li>
+    </ul>
+</div>

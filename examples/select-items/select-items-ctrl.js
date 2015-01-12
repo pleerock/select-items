@@ -5,6 +5,16 @@
  */
 angular.module('selectItemsExample', ['selectItems']);
 
+angular.module('selectItemsExample').config(['selectItemsConfiguration', function(selectItemsConfiguration) {
+
+    // uncomment this lines to see how global configuration of select-items works:
+    // selectItemsConfiguration.searchPlaceholder = 'наберите чтобы искать';
+    // selectItemsConfiguration.selectAllLabel = 'выбрать все';
+    // selectItemsConfiguration.deselectAllLabel = 'убрать выделение';
+    // selectItemsConfiguration.noSelectionLabel = 'ничего не выбрано';
+
+}]);
+
 /**
  * @author Umed Khudoiberdiev <info@zar.tj>
  */

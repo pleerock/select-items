@@ -1,35 +1,13 @@
 'use strict';
 
 /**
- * This directive provides a ability to select items from the given list to the given model.
- * Supports both multiple and single select modes.
+ * This directive opens a dropdown on the click on some element.
  *
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
-angular.module('openDropdown', []);
-
-/**
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('openDropdown').directive('openDropdown', [
-    '$parse',
-    function ($parse) {
-
-        /**
-         * Translates a given value (mostly string) to a boolean.
-         *
-         * @param {*} value
-         * @returns {boolean}
-         */
-        var toBoolean = function(value) {
-            if (value && value.length !== 0) {
-                var v = value.toLowerCase();
-                value = !(v == 'f' || v == '0' || v == 'false' || v == 'no' || v == 'n' || v == '[]');
-            } else {
-                value = false;
-            }
-            return value;
-        };
+angular.module('openDropdown', []).directive('openDropdown', [
+    '$parse', '$timeout',
+    function ($parse, $timeout) {
 
         return {
             replace: true,
@@ -54,25 +32,32 @@ angular.module('openDropdown').directive('openDropdown', [
                 if (!attrs.for)
                     throw 'You must specify for what open dropdown component is attached (container id).';
 
-                var toggleClick = toBoolean(attrs.toggleClick);
-                var attachedContainer = document.getElementById(attrs.for);
-
-                if (!attachedContainer)
-                    throw 'Cant find a container to attach to.';
+                var toggleClick = (attrs.toggleClick === true || attrs.toggleClick === 'true');
+                var attachedContainer;
 
                 // ---------------------------------------------------------------------
-                // Initial DOM manipulation
+                // Initialization
                 // ---------------------------------------------------------------------
 
-                element[0].style.width = (attachedContainer.offsetWidth - 2) + 'px';
+                // lets give a time for angular to initialize attached container id, then find this element
+                $timeout(function() {
+                    attachedContainer = document.getElementById(attrs.for);
+                    if (!attachedContainer)
+                        throw 'Cant find a container to attach to.';
+
+                    element[0].style.width = (attachedContainer.offsetWidth - 2) + 'px';
+                    attachedContainer.addEventListener('keydown', onAttachedContainerKeyDown);
+                    attachedContainer.addEventListener('click', onAttachedContainerClick);
+                    document.addEventListener('mousedown', onDocumentMouseDown);
+                }, 100);
 
                 // ---------------------------------------------------------------------
                 // Watchers
                 // ---------------------------------------------------------------------
 
                 if (attrs.isOpened) {
-                    scope.$watch(attrs.isOpened, function(newVal, oldVal) {
-                        element[0].style.display = (newVal === true) ? 'block' : 'none';
+                    scope.$watch(attrs.isOpened, function(opened) {
+                        element[0].style.display = (opened === true) ? 'block' : 'none';
                     });
                 }
 
@@ -88,7 +73,7 @@ angular.module('openDropdown').directive('openDropdown', [
                 var setIsOpened = function(is) {
                     if (attrs.isOpened) {
                         $parse(attrs.isOpened).assign(scope, is);
-                        scope.$apply();
+                        scope.$digest();
                     } else {
                         element[0].style.display = is ? 'block' : 'none';
                     }
@@ -130,7 +115,6 @@ angular.module('openDropdown').directive('openDropdown', [
                  * Open select drop down menu automatically when user clicks on the attached container.
                  */
                 var onAttachedContainerClick = function() {
-                    console.log('!');
                     var needToHide = toggleClick && element[0].style.display !== 'none';
                     setIsOpened(!needToHide);
                 };
@@ -139,14 +123,12 @@ angular.module('openDropdown').directive('openDropdown', [
                 // Event listeners
                 // ---------------------------------------------------------------------
 
-                document.addEventListener('mousedown', onDocumentMouseDown);
-                attachedContainer.addEventListener('keydown', onAttachedContainerKeyDown);
-                attachedContainer.addEventListener('click', onAttachedContainerClick);
-
                 scope.$on('$destroy', function() {
-                    document.removeEventListener('mousedown', onDocumentMouseDown);
-                    attachedContainer.removeEventListener('keydown', onAttachedContainerKeyDown);
-                    attachedContainer.removeEventListener('click', onAttachedContainerClick);
+                    if (attachedContainer) {
+                        document.removeEventListener('mousedown', onDocumentMouseDown);
+                        attachedContainer.removeEventListener('keydown', onAttachedContainerKeyDown);
+                        attachedContainer.removeEventListener('click', onAttachedContainerClick);
+                    }
                 });
 
             }

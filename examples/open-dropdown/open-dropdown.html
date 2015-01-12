@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>Select Items Dropdown</title>
 
-    <link rel="stylesheet" href="../../src/select-items/select-items.css"/>
     <link rel="stylesheet" href="../../src/open-dropdown/open-dropdown.css"/>
 
     <script src="../../bower_components/angular/angular.js"></script>
@@ -14,7 +13,7 @@
     <script src="open-dropdown.js"></script>
 
 </head>
-<body ng-app="openDropdownExample" ng-controller="OpenDropdownCtrl">
+<body ng-app="openDropdownExample">
 
     <!-- =================================================================== -->
 
@@ -40,7 +39,7 @@
         </open-dropdown>
     </div>
 
-    Is dropdown opened now? : {{ isOpened }}<br/>
+    <p style="margin-left: 40px">Is dropdown opened now? : {{ isOpened }}</p><br/>
     <button ng-disabled="isOpened" ng-click="isOpened = true">Click to open dropdown</button>
 
 

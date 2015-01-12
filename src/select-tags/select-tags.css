@@ -6,6 +6,11 @@
 
 .select-tags .open-dropdown {
     margin-top: -2px;
+    border: none !important;
+}
+
+.select-tags .open-dropdown .select-items{
+    border: 1px solid #CCC;
 }
 
 .select-tags :focus, .select-dropdown:focus {
@@ -13,9 +18,10 @@
 }
 
 /* select-items-box base styles */
+
 .token-input-container {
-    position: relative;
-    z-index: 1;
+    /*position: relative;
+    z-index: 1;*/
     overflow: hidden;
     display: inline-block;
     width: 100%;
@@ -32,6 +38,10 @@
 
 .token-input-container .token-item {
     display: inline-block;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .token-input-container .token {
@@ -47,7 +57,7 @@
 
 }
 
-.token-input-container .token-item  input {
+.token-input-container input {
 
     display: inline-block;
     width: 4px;

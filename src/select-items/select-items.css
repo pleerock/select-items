@@ -1,9 +1,5 @@
 /* General select-items directive styles */
 
-.select-items li input {
-    margin-right: 15px;
-}
-
 .select-items {
     width: 200px;
 }

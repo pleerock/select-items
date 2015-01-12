@@ -1,17 +1,16 @@
 'use strict';
 
 /**
- * This directive provides a ability to select items from the given list to the given model.
- * Supports both multiple and single select modes.
+ * This module represents a select-options directive that allows us to use a custom expression
+ * for the components that needs model and list of options. This directive works like a ng-options.
+ *
+ * todo: this class needs refactoring
+ * todo: this class needs better documentation
+ * todo: this class needs better to be tested better and check for bugs
  *
  * @author Umed Khudoiberdiev <info@zar.tj>
  */
-angular.module('selectOptions', []);
-
-/**
- * @author Umed Khudoiberdiev <info@zar.tj>
- */
-angular.module('selectOptions').directive('selectOptions', [
+angular.module('selectOptions', []).directive('selectOptions', [
     '$parse',
     function ($parse) {
 
@@ -43,6 +42,10 @@ angular.module('selectOptions').directive('selectOptions', [
                 var match = $attrs.selectOptions.match(regexp);
                 if (!match)
                     throw 'Expected expression in form of "_select_ (as _label_)? for (_key_,)?_value_ in _collection_", but given ' + $attrs.selectOptions;
+
+                this.setVirtualOptions = function (){
+                    // todo
+                };
 
                 this.getItemNameWithoutPrefixes = function() {
                     return replacePrefixes(this.getItemName());
@@ -78,6 +81,10 @@ angular.module('selectOptions').directive('selectOptions', [
                     return replacePrefixes(trackBy);
                 };
 
+                /**
+                 * @param object
+                 * @returns {string}
+                 */
                 this.parseItemName = function(object) {
                     var locals = {};
                     locals[this.getItem()] = object;
@@ -85,6 +92,10 @@ angular.module('selectOptions').directive('selectOptions', [
                     return String(name).replace(/<[^>]+>/gm, ''); // strip html from the data here
                 };
 
+                /**
+                 * @param object
+                 * @returns {string}
+                 */
                 this.parseItemValueFromSelection = function(object) {
                     var newItemValue = this.getItemValue().replace('.', '_');
                     var newItemName  = this.getItemName().replace(this.getItemValue(), newItemValue);
@@ -94,22 +105,36 @@ angular.module('selectOptions').directive('selectOptions', [
                     return String(name).replace(/<[^>]+>/gm, ''); // strip html from the data here
                 };
 
+                /**
+                 * @param object
+                 * @returns {*}
+                 */
                 this.parseItemValue = function(object) {
                     var locals = {};
                     locals[this.getItem()] = object;
                     return $parse(this.getItemValue())($scope, locals);
                 };
 
+                /**
+                 * @param object
+                 * @returns {*}
+                 */
                 this.parseTrackBy = function(object) {
                     var locals = {};
                     locals[this.getItem()] = object;
                     return $parse(match[7])($scope, locals);
                 };
 
+                /**
+                 * @returns {*}
+                 */
                 this.parseItems = function() {
                     return $parse(this.getItems())($scope);
                 };
 
+                /**
+                 * Logs all parsed data.
+                 */
                 this.log = function() {
                     console.log('item name: ' + this.getItemName());
                     console.log('item value: ' + this.getItemValue());

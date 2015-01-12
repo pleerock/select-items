@@ -21,19 +21,20 @@ angular.module('selectDropdown').directive('selectDropdown', [
 
         return {
             replace: true,
+            scope: true,
             restrict: 'E',
             template: function(element, attrs) {
-                var selectBoxId = 'select_dropdown' + guid();
-                return '<div class="select-dropdown" tabindex="1">' +
-                    '<select-items-box id="' + selectBoxId + '" tabindex="2"' +
+                var selectBoxId = 'select_dropdown_' + guid();
+                return '<div class="select-dropdown">' +
+                    '<select-items-box  id="' + selectBoxId + '" tabindex="2" style="display: block"' +
                                         'class="select-items-box"' +
-                                        'ng-class="{\'opened\': ' + selectBoxId + ', \'closed\': !' + selectBoxId + '}"' +
+                                        'ng-class="{\'opened\': isOpened, \'closed\': !isOpened}"' +
                                         'nothing-selected-text="' + (attrs.nothingSelectedText ? attrs.nothingSelectedText : '') + '"' +
                                         'decorator="' + (attrs.showDecorator ? attrs.showDecorator : '') + '"' +
                                         'separator="' + (attrs.showSeparator ? attrs.showSeparator : '') + '"' +
                                         'show-limit="' + (attrs.showLimit ? attrs.showLimit : '') + '"' +
                                         '></select-items-box>' +
-                    '<open-dropdown class="open-dropdown" for="' + selectBoxId + '" toggle-click="true" tabindex="3" is-opened="' + selectBoxId + '">' +
+                    '<open-dropdown class="open-dropdown" for="' + selectBoxId + '" toggle-click="true" tabindex="3" is-opened="isOpened">' +
                        '<select-items class="select-items"' +
                              'select-options="' + attrs.selectOptions + '"'  +
                              'decorator="decorator"'  +
@@ -41,8 +42,7 @@ angular.module('selectDropdown').directive('selectDropdown', [
                              'search="false"'  +
                              'select-all="' + (attrs.dropdownSelectAll ? attrs.dropdownSelectAll : '') + '"'  +
                              'auto-select="' + (attrs.dropdownAutoSelect ? attrs.dropdownAutoSelect : '') + '"'  +
-                             'multiselect="' + (attrs.multiselect ? attrs.multiselect : '') + '"' +
-                             'key-input-listen-for="' + selectBoxId + '">' +
+                             'multiselect="' + (attrs.multiselect ? attrs.multiselect : '') + '">' +
                         '</select-items>'  +
                     '</open-dropdown>'  +
                 '</div>';
@@ -53,14 +53,12 @@ angular.module('selectDropdown').directive('selectDropdown', [
                 // Variables
                 // ---------------------------------------------------------------------
 
-                var selectItemsBox = element[0].getElementsByClassName('select-items-box')[0];
-
                 /**
                  * Indicates if dropdown is opened or not.
                  *
                  * @type {boolean}
                  */
-                scope[selectItemsBox.id] = false;
+                scope.isOpened = false;
 
                 // ---------------------------------------------------------------------
                 // Local functions
@@ -76,21 +74,29 @@ angular.module('selectDropdown').directive('selectDropdown', [
 
                         case 38: // KEY "UP"
                             e.preventDefault();
-                            scope[selectItemsBox.id] = true;
-                            scope.$apply();
-                            selectItemsBox.focus();
+                            scope.isOpened = true;
+                            scope.$broadcast('select-items.active_next');
+                            scope.$digest();
                             return;
 
                         case 40: // KEY "DOWN"
                             e.preventDefault();
-                            scope[selectItemsBox.id] = true;
-                            scope.$apply();
-                            selectItemsBox.focus();
+                            scope.isOpened = true;
+                            scope.$broadcast('select-items.active_previous');
+                            scope.$digest();
+                            return;
+
+                        case 13: // KEY "ENTER"
+                            if (scope.isOpened) {
+                                scope.$broadcast('select-items.select_active');
+                                scope.$digest();
+                            }
                             return;
 
                         case 27: // KEY "ESC"
-                            scope[selectItemsBox.id] = false;
-                            scope.$apply();
+                            scope.isOpened = false;
+                            scope.$emit('select-items.selection_canceled');
+                            scope.$digest();
                             return;
 
                         default:
@@ -105,19 +111,10 @@ angular.module('selectDropdown').directive('selectDropdown', [
                  * @param {object} object
                  */
                 var onItemSelected = function(event, object) {
-                    selectItemsBox.focus();
                     if (object && !object.isMultiselect)
-                        scope[selectItemsBox.id] = false;
-                };
+                        scope.isOpened = false;
 
-                /**
-                 * When user escapes dropdown (selection canceled) we move focus out of select-items-box to the element
-                 */
-                var onSelectionCanceled = function() {
-                    if (selectItemsBox) {
-                        selectItemsBox.blur();
-                        element[0].focus();
-                    }
+                    //scope.$digest();
                 };
 
                 // ---------------------------------------------------------------------
@@ -126,7 +123,6 @@ angular.module('selectDropdown').directive('selectDropdown', [
 
                 element[0].addEventListener('keydown', onSelectDropdownKeydown);
                 scope.$on('select-items.item_selected', onItemSelected);
-                scope.$on('select-items.selection_canceled', onSelectionCanceled);
 
             }
         };
@@ -144,18 +140,16 @@ angular.module('selectDropdown').directive('selectItemsBox', [
             scope: {
                 decorator: '='
             },
-            replace: true,
             restrict: 'E',
             require: ['^ngModel', '^selectOptions'],
-            template: '<div class="select-items-box"><div class="arrow-container"><div class="arrow"></div></div><div class="text-items">' +
+            template: '<div class="arrow-container"><div class="arrow"></div></div><div class="text-items">' +
                     '<span ng-repeat="item in getItems()">' +
                         '<span ng-hide="showLimit && $index >= showLimit" ng-bind-html="getItemName(item)"></span>' +
                         '<span ng-hide="$last || (showLimit && $index >= showLimit)">{{ separator }}</span>' +
                         '<span ng-show="showLimit && $index === showLimit">...</span>' +
                     '</span>' +
                     '<div ng-show="!getItems() || !getItems().length">{{ nothingSelectedText }}</div>' +
-                '</div>' +
-            '</div>',
+                '</div>',
             link: function (scope, element, attrs, controllers) {
 
                 var ngModelCtrl         = controllers[0];
